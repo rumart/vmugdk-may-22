@@ -1,0 +1,109 @@
+
+#################################
+# 01 - Create unmanaged cluster #
+#################################
+tanzu unmanaged-cluster create vmugdk
+kubectl get nodes
+kubectl get pod -A
+kubectl create deployment nginx --image=nginx
+kubectl get pod
+kubectl expose deployment nginx --type=NodePort --port=80
+kubectl get ep, svc
+tanzu unmanaged-cluster delete vmugdk
+
+##################################
+# 02 - Create management cluster #
+##################################
+(video)
+tanzu management-cluster create --ui
+tanzu management-cluster create tce-mgmt-dk  --file 01-mgmt-config.yaml -v 6
+tanzu cluster list --include-management-cluster
+kubectl config get-contexts
+kubectl config use-context tce-mgmt-dk-admin@tce-mgmt-dk
+kubectl get apps -A
+kubectl get pods -A
+
+###########################
+# 03 - Create wld cluster #
+###########################
+(video)
+tanzu cluster create tce-wld-dk --file 02-wld-config.yaml -v 6
+kubectl config get-contexts
+tanzu cluster kubeconfig get tce-wld-dk --admin
+kubectl config use-context tce-wld-dk-admin@tce-wld-dk
+kubectl get apps -A
+
+####################
+# 04 - Add MetalLB #
+####################
+kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.11.0/manifests/namespace.yaml
+kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.11.0/manifests/metallb.yaml
+cat 04-metallb-cm.yaml
+kubectl apply -f 04-metallb-cm.yaml
+kubectl create deployment nginx --image=nginx
+kubectl expose deployment nginx --type=LoadBalancer --port=80
+kubectl get svc
+curl http://192.168.171.200
+
+###########################
+# 05 - Tanzu package repo #
+###########################
+tanzu package repository add tce-repo --url projects.registry.vmware.com/tce/main:0.11.0 --namespace tanzu-package-repo-global
+tanzu package available list
+
+tanzu package available get cert-manager.community.tanzu.vmware.com
+tanzu package available list cert-manager.community.tanzu.vmware.com
+tanzu package install cert-manager --package-name cert-manager.community.tanzu.vmware.com --version 1.6.1
+
+##########################
+# 06 - ingress / Contour #
+##########################
+tanzu package available list contour.community.tanzu.vmware.com
+cat 06-contour-values.yaml
+tanzu package install contour --package-name contour.community.tanzu.vmware.com --version 1.20.1 --values-file 06-contour-values.yaml
+
+######################
+# 07 - Observability #
+######################
+cat 07a-prom-values.yaml
+tanzu package install prometheus --package-name prometheus.community.tanzu.vmware.com --version 2.27.0-1 --values-file 07a-prom-values.yaml
+https://beyondelastic.com/2022/01/04/tanzu-packages-explained/
+http://prometheus.tce.rhmlab.local
+cat 07b-grafana-values.yaml
+tanzu package install grafana --package-name grafana.community.tanzu.vmware.com --version 7.5.11 --values-file 07b-grafana-values.yaml
+http://grafana.tce.rhmlab.local
+
+##########################
+# 08 - Deploy app / plex #
+##########################
+kubectl get storageclass
+https://vcenter-01.rhmlab.local (storage policy)
+cat 08a-sc.yaml
+kubectl apply -f 08a-sc.yaml
+cat 08b-plex.yaml
+kubectl apply -f 08b-plex.yaml
+kubectl -n plex get all
+kubectl -n plex describe pod plex
+tanzu cluster
+tanzu cluster scale tce-wld-dk 
+tanzu cluster scale tce-wld-dk -w 2
+tanzu cluster list
+kubectl -n plex get pod -w
+cat 08c-plex-svc.yaml
+kubectl apply -f 08c-plex-svc.yaml
+http://192.168.171.203:32400
+cat 08d-plex-ingress.yaml
+kubectl apply -f 08d-plex-ingress.yaml
+kubectl -n plex get pod,svc,httpproxy,certificate
+http://plex.tce.rhmlab.local
+
+#######################
+# 09 - Delete cluster #
+#######################
+tanzu cluster delete tce-wld-dk
+
+####################
+# xx - Extra extra #
+####################
+nginx ingress example
+harbor

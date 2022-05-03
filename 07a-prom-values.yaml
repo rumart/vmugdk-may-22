@@ -1,0 +1,3 @@
+ingress:
+  enabled: true
+  virtual_host_fqdn: prometheus.tce.rhmlab.local

@@ -1,0 +1,82 @@
+namespace: harbor
+hostname: harbor.tce.rhmlab.local #Hostname used to reach the Harbor UI
+port:
+  https: 443
+logLevel: info
+enableContourHttpProxy: true
+harborAdminPassword: CQrU7z7VFUq6tY2p
+secretKey: FsARa2zJUi7HBHr9
+database:
+  password: rjeSStPsbZWdlZUj
+core:
+  replicas: 1
+  secret: 8YAv899hJIzTdtdM
+  xsrfKey: 88AoOBxKS141lpHhg5APr3KJH5pQotAd
+jobservice:
+  replicas: 1
+  secret: WXEv1NhvnwQQhreF
+registry:
+  replicas: 1
+  secret: BWZTjR2oteTMf8Q2
+notary:
+  enabled: true
+trivy:
+  enabled: true
+  replicas: 1
+  gitHubToken: ""
+  skipUpdate: false
+persistence:
+  persistentVolumeClaim:
+    registry:
+      #existingClaim: "harbor-pvc"
+      storageClass: "kube-local-ssd"
+      subPath: "registry"
+      accessMode: ReadWriteOnce
+      size: 10Gi
+    jobservice:
+      #existingClaim: "harbor-pvc"
+      storageClass: "kube-local-ssd"
+      subPath: "jobservice"
+      accessMode: ReadWriteOnce
+      size: 1Gi
+    database:
+      #existingClaim: "harbor-pvc"
+      storageClass: "kube-local-ssd"
+      subPath: "db"
+      accessMode: ReadWriteOnce
+      size: 1Gi
+    redis:
+      #existingClaim: "harbor-pvc"
+      storageClass: "kube-local-ssd"
+      subPath: "redis"
+      accessMode: ReadWriteOnce
+      size: 1Gi
+    trivy:
+      #existingClaim: "harbor-pvc"
+      storageClass: "kube-local-ssd"
+      subPath: "trivy"
+      accessMode: ReadWriteOnce
+      size: 5Gi
+  imageChartStorage:
+    disableredirect: false
+    type: filesystem
+    filesystem:
+      rootdirectory: /storage
+pspNames: null
+metrics:
+  enabled: false
+  core:
+    path: /metrics
+    port: 8001
+  registry:
+    path: /metrics
+    port: 8001
+  jobservice:
+    path: /metrics
+    port: 8001
+  exporter:
+    path: /metrics
+    port: 8001
+
+network:
+  ipFamilies: ["IPv4","IPv6"]

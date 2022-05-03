@@ -1,0 +1,12 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: kube-local-ssd
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "false"
+provisioner: csi.vsphere.vmware.com
+reclaimPolicy: Delete
+volumeBindingMode: Immediate
+allowVolumeExpansion: true
+parameters:
+  storagePolicyName: kube-local-ssd
